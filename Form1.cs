@@ -140,14 +140,13 @@ namespace Kursach_again
             }
         }
 
-        private void make_buttons(int amount, int size)
+        private void make_buttons(int amount, int size, int scale)
         {
             for (int i = 0; i < amount; i++)
             {
                 Button button = new Button();
-                button.Width = size;
-                button.Height = size;
-                button.Text = size.ToString();
+                button.Size = new Size(size, size);
+                button.Text = (size / scale).ToString();
 
                 button_list.Add(button);
             }
@@ -217,17 +216,19 @@ namespace Kursach_again
 
 
             int squares_count = int.Parse(number_of_squares.Text);
-            int scale = 8;
-            int width = int.Parse(field_width.Text) + 1;
-            int height = squares_count * width / 4;
+            int scale = 10;
+            int width = int.Parse(field_width.Text);
+            int height = squares_count * width / 2;
 
             //if (squares_count >= 30 || width >= 30) scale = 2;
             //else if (squares_count >= 25 || width >= 25) scale = 4;
             //else if (squares_count >= 20 || width >= 20) scale = 6;
 
-            field.Size = new Size(width * scale, height * scale);
+            //field.MinimumSize = new Size(width * scale, height * scale);
+            field.AutoSize = true;
+            field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
-            make_buttons(squares_count, width / 4 * scale);
+            make_buttons(squares_count, width / 2 * scale, scale);
             
             place_buttons(width * scale, height * scale);
 
