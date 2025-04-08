@@ -39,8 +39,10 @@ namespace Kursach_again
 
             for (int i = 0; i < size; i++)
             {
-                touch_sum += field_matrix[y + i][x];
-                touch_sum += field_matrix[y][x + i];
+                if (field_matrix[y + i][x] == 1 || field_matrix[y + i][x] == 2) touch_sum++;
+
+                if (field_matrix[y][x + i] == 1 || field_matrix[y][x + i] == 2) touch_sum++;
+
             }
 
             return touch_sum;
@@ -49,8 +51,8 @@ namespace Kursach_again
         private bool check_crosses(int x, int y, int size)
         {
             copy_field_matrix.Clear();
-            copy_field_matrix.AddRange(field_matrix);
-            
+            field_matrix.ForEach((item) => { copy_field_matrix.Add((int[])item.Clone()); });
+
             for (int i = 0; i < size; i++)
             {
                 for (int j = 0; j < size; j++)
@@ -65,7 +67,7 @@ namespace Kursach_again
             return false;
         }
 
-        private void build_optimal_square()
+        private void build_optimal_square(Button btn, int scale)
         {
             int id = 0, max_sum = 0;
 
@@ -93,7 +95,9 @@ namespace Kursach_again
             field_matrix[y][x + size - 1] = 1;
             field_matrix[y + size - 1][x + size - 1] = 1;
 
-            //построить кнопку
+            btn.Location = new Point(x, y);
+            btn.Size = new Size(btn.Width * scale, btn.Height * scale);
+            field.Controls.Add(btn);
 
         }
 
@@ -142,7 +146,7 @@ namespace Kursach_again
             }
         }
 
-        private void place_buttons(int width)
+        private void place_buttons(int width, int scale)
         {
             foreach (Button button in button_list)
             {
@@ -158,7 +162,8 @@ namespace Kursach_again
                         {
                             if (x + button.Width > width) break;
 
-                            if (y + button.Height > field_matrix.Count) add_height(button.Height, width);
+                            if (y + button.Height > field_matrix.Count)
+                                add_height(button.Height, width);
 
                             if(check_crosses(x, y, button.Width)) break;
 
@@ -168,7 +173,7 @@ namespace Kursach_again
                     }
                 }
 
-                build_optimal_square();
+                build_optimal_square(button, scale);
 
             }
         }
@@ -191,12 +196,13 @@ namespace Kursach_again
             else if (squares_count >= 25 || width >= 25) scale = 4;
             else if (squares_count >= 20 || width >= 20) scale = 6;
 
+            field.Size = new Size(width * scale, height * scale);
+
             make_matrix(width, height);
             make_buttons(squares_count, width / 4);
-            place_buttons(width);
+            place_buttons(width, scale);
 
-
-            field.Size = new Size(width * scale, height * scale);
+            
             field.Show();
             button1.Enabled = false;
         }

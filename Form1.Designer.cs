@@ -50,9 +50,9 @@
             label1.AutoSize = true;
             label1.Location = new Point(12, 25);
             label1.Name = "label1";
-            label1.Size = new Size(82, 15);
+            label1.Size = new Size(115, 15);
             label1.TabIndex = 1;
-            label1.Text = "Ширина поля";
+            label1.Text = "Ширина поля cvcvv";
             // 
             // field_width
             // 
