@@ -1,3 +1,5 @@
+using System.Drawing.Drawing2D;
+
 namespace Kursach_again
 {
     public partial class Form1 : Form
@@ -5,8 +7,10 @@ namespace Kursach_again
         Form field = new Form();
         List<int[]> field_matrix = new List<int[]>();
         List<Button> button_list = new List<Button>();
-        List<int[]> coords = new List<int[]>();
+        List<int[]> variants = new List<int[]>();
         List<int[]> copy_field_matrix = new List<int[]>();
+        List<int[]> coords = new List<int[]>();
+        int prev_square_size = 0;
 
 
         public Form1()
@@ -67,20 +71,20 @@ namespace Kursach_again
             return false;
         }
 
-        private void build_optimal_square(Button btn, int scale)
+        private void find_optimal_square()
         {
             int id = 0, max_sum = 0;
 
-            for (int i = 0; i < coords.Count; i++)
+            for (int i = 0; i < variants.Count; i++)
             {
-                if (coords[i][0] > max_sum)
+                if (variants[i][0] > max_sum)
                 {
-                    max_sum = coords[i][0];
+                    max_sum = variants[i][0];
                     id = i;
                 }
             }
 
-            int x = coords[id][1], y = coords[id][2], size = coords[id][3];
+            int x = variants[id][1], y = variants[id][2], size = variants[id][3];
 
             for (int i = 0; i < size; i++)
             {
@@ -95,9 +99,12 @@ namespace Kursach_again
             field_matrix[y][x + size - 1] = 1;
             field_matrix[y + size - 1][x + size - 1] = 1;
 
-            btn.Location = new Point(x, y);
-            btn.Size = new Size(btn.Width * scale, btn.Height * scale);
-            field.Controls.Add(btn);
+            //btn.Location = new Point(x, y);
+            //btn.Size = new Size(btn.Width * scale, btn.Height * scale);
+            //field.Controls.Add(btn);
+
+            coords.Add([x, y, size]);
+            //prev_square_size = size;
 
         }
 
@@ -146,11 +153,15 @@ namespace Kursach_again
             }
         }
 
-        private void place_buttons(int width, int scale)
+        private void place_buttons(int width, int height)
         {
+            make_matrix(width, height);
+            coords.Clear();
+            prev_square_size = 0;
+
             foreach (Button button in button_list)
             {
-                coords.Clear();
+                variants.Clear();
 
                 for (int y = 0; y < field_matrix.Count; y++)
                 {
@@ -160,21 +171,39 @@ namespace Kursach_again
                     {
                         if (field_matrix[y][x] == 1)
                         {
-                            if (x + button.Width > width) break;
+                            if (x + button.Width > width)
+                            {
+                                prev_square_size = 0;
+                                break;
+                            }
 
-                            if (y + button.Height > field_matrix.Count)
-                                add_height(button.Height, width);
+                            if (y + button.Height > field_matrix.Count) add_height(button.Height, width);
 
-                            if(check_crosses(x, y, button.Width)) break;
+                            if (check_crosses(x, y, button.Width)) break;
 
-                            coords.Add([find_touching_sum(x, y, button.Width), x, y, button.Width]);
+                            variants.Add([find_touching_sum(x, y, button.Width), x, y, button.Width]);
 
                         }
                     }
                 }
 
-                build_optimal_square(button, scale);
+                find_optimal_square();
 
+            }
+
+            build_buttons();
+        }
+
+        private void build_buttons()
+        {
+            for (int i = 0;  i < button_list.Count; i++)
+            {
+                Button button = button_list[i];
+
+                button.Location = new Point(coords[i][0], coords[i][1]);
+                button.Size = new Size(coords[i][2], coords[i][2]);
+
+                field.Controls.Add(button);
             }
         }
 
@@ -189,18 +218,18 @@ namespace Kursach_again
 
             int squares_count = int.Parse(number_of_squares.Text);
             int scale = 8;
-            int width = int.Parse(field_width.Text);
+            int width = int.Parse(field_width.Text) + 1;
             int height = squares_count * width / 4;
 
-            if (squares_count >= 30 || width >= 30) scale = 2;
-            else if (squares_count >= 25 || width >= 25) scale = 4;
-            else if (squares_count >= 20 || width >= 20) scale = 6;
+            //if (squares_count >= 30 || width >= 30) scale = 2;
+            //else if (squares_count >= 25 || width >= 25) scale = 4;
+            //else if (squares_count >= 20 || width >= 20) scale = 6;
 
             field.Size = new Size(width * scale, height * scale);
 
-            make_matrix(width, height);
-            make_buttons(squares_count, width / 4);
-            place_buttons(width, scale);
+            make_buttons(squares_count, width / 4 * scale);
+            
+            place_buttons(width * scale, height * scale);
 
             
             field.Show();
