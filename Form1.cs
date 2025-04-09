@@ -8,9 +8,9 @@ namespace Kursach_again
         List<int[]> field_matrix = new List<int[]>();
         List<Button> button_list = new List<Button>();
         List<int[]> variants = new List<int[]>();
-        List<int[]> copy_field_matrix = new List<int[]>();
         List<int[]> coords = new List<int[]>();
         int prev_square_size = 0;
+        int scale = 10;
 
 
         public Form1()
@@ -54,7 +54,10 @@ namespace Kursach_again
 
         private bool check_crosses(int x, int y, int size)
         {
-            copy_field_matrix.Clear();
+            List<int[]> copy_field_matrix = new List<int[]>();
+
+            //copy_field_matrix.Clear();
+
             field_matrix.ForEach((item) => { copy_field_matrix.Add((int[])item.Clone()); });
 
             for (int i = 0; i < size; i++)
@@ -124,6 +127,8 @@ namespace Kursach_again
 
         private void make_matrix(int width, int height)
         {
+            field_matrix.Clear();
+
             for (int i = 0; i < height; i++)
             {
                 int[] line = new int[width];
@@ -140,13 +145,17 @@ namespace Kursach_again
             }
         }
 
-        private void make_buttons(int amount, int size, int scale)
+        private void make_buttons(int amount, int width)
         {
             for (int i = 0; i < amount; i++)
             {
+                Random rnd = new Random();
+                int sz = rnd.Next(2, width);
+
                 Button button = new Button();
-                button.Size = new Size(size, size);
-                button.Text = (size / scale).ToString();
+                button.Size = new Size(sz * scale, sz * scale);
+                button.Text = sz.ToString();
+                button.MouseDown += square_Click;
 
                 button_list.Add(button);
             }
@@ -195,6 +204,8 @@ namespace Kursach_again
 
         private void build_buttons()
         {
+            field.Controls.Clear();
+
             for (int i = 0;  i < button_list.Count; i++)
             {
                 Button button = button_list[i];
@@ -204,6 +215,27 @@ namespace Kursach_again
 
                 field.Controls.Add(button);
             }
+        }
+
+        private void square_Click(object sender, MouseEventArgs e)
+        {
+            var button = sender as Button;
+            //MouseEventArgs me = (MouseEventArgs)e;
+
+            if (e.Button == MouseButtons.Left && (button.Width + scale) <= field_matrix[0].Count())
+            {
+                button.Size = new Size(button.Width + scale, button.Height + scale);
+                button.Text = (button.Width / scale).ToString();
+            }
+
+            if (e.Button == MouseButtons.Right && (button.Width - scale) > 0)
+            {
+                button.Size = new Size(button.Width - scale, button.Height - scale);
+                button.Text = (button.Width / scale).ToString();
+            }
+
+            place_buttons(field_matrix[0].Count(), field_matrix.Count());
+
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -216,7 +248,6 @@ namespace Kursach_again
 
 
             int squares_count = int.Parse(number_of_squares.Text);
-            int scale = 10;
             int width = int.Parse(field_width.Text);
             int height = squares_count * width / 2;
 
@@ -228,7 +259,7 @@ namespace Kursach_again
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
-            make_buttons(squares_count, width / 2 * scale, scale);
+            make_buttons(squares_count, width);
             
             place_buttons(width * scale, height * scale);
 
