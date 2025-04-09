@@ -1,5 +1,3 @@
-using System.Drawing.Drawing2D;
-
 namespace Kursach_again
 {
     public partial class Form1 : Form
@@ -9,7 +7,6 @@ namespace Kursach_again
         List<Button> button_list = new List<Button>();
         List<int[]> variants = new List<int[]>();
         List<int[]> coords = new List<int[]>();
-        int prev_square_size = 0;
         int scale = 10;
 
 
@@ -102,12 +99,8 @@ namespace Kursach_again
             field_matrix[y][x + size - 1] = 1;
             field_matrix[y + size - 1][x + size - 1] = 1;
 
-            //btn.Location = new Point(x, y);
-            //btn.Size = new Size(btn.Width * scale, btn.Height * scale);
-            //field.Controls.Add(btn);
-
             coords.Add([x, y, size]);
-            //prev_square_size = size;
+
 
         }
 
@@ -145,12 +138,17 @@ namespace Kursach_again
             }
         }
 
-        private void make_buttons(int amount, int width)
+        private void make_buttons(int amount, int width, bool random)
         {
+            int sz = 2;
+
             for (int i = 0; i < amount; i++)
             {
-                Random rnd = new Random();
-                int sz = rnd.Next(2, width);
+                if (random)
+                {
+                    Random rnd = new Random();
+                    sz = rnd.Next(2, width);
+                }
 
                 Button button = new Button();
                 button.Size = new Size(sz * scale, sz * scale);
@@ -165,7 +163,6 @@ namespace Kursach_again
         {
             make_matrix(width, height);
             coords.Clear();
-            prev_square_size = 0;
 
             foreach (Button button in button_list)
             {
@@ -179,11 +176,7 @@ namespace Kursach_again
                     {
                         if (field_matrix[y][x] == 1)
                         {
-                            if (x + button.Width > width)
-                            {
-                                prev_square_size = 0;
-                                break;
-                            }
+                            if (x + button.Width > width) break;                         
 
                             if (y + button.Height > field_matrix.Count) add_height(button.Height, width);
 
@@ -220,7 +213,6 @@ namespace Kursach_again
         private void square_Click(object sender, MouseEventArgs e)
         {
             var button = sender as Button;
-            //MouseEventArgs me = (MouseEventArgs)e;
 
             if (e.Button == MouseButtons.Left && (button.Width + scale) <= field_matrix[0].Count())
             {
@@ -242,24 +234,33 @@ namespace Kursach_again
         {
             if (!ValidateFields())
             {
-                MessageBox.Show("NaN");
+                MessageBox.Show("Одно или несколько введённых вами значений не являются числами.", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-
             int squares_count = int.Parse(number_of_squares.Text);
+
+            if (squares_count <= 0)
+            {
+                MessageBox.Show("Должен быть как минимум один квадрат!", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             int width = int.Parse(field_width.Text);
+
+            if (width < 5)
+            {
+                MessageBox.Show("Ширина поля должна быть как минимум 5!", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             int height = squares_count * width / 2;
 
-            //if (squares_count >= 30 || width >= 30) scale = 2;
-            //else if (squares_count >= 25 || width >= 25) scale = 4;
-            //else if (squares_count >= 20 || width >= 20) scale = 6;
-
-            //field.MinimumSize = new Size(width * scale, height * scale);
+           
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
-            make_buttons(squares_count, width);
+            make_buttons(squares_count, width, make_random.Checked);
             
             place_buttons(width * scale, height * scale);
 

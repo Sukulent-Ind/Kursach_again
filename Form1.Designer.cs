@@ -33,11 +33,12 @@
             field_width = new TextBox();
             number_of_squares = new TextBox();
             label3 = new Label();
+            make_random = new CheckBox();
             SuspendLayout();
             // 
             // button1
             // 
-            button1.Location = new Point(67, 120);
+            button1.Location = new Point(66, 142);
             button1.Name = "button1";
             button1.Size = new Size(75, 23);
             button1.TabIndex = 0;
@@ -77,11 +78,22 @@
             label3.TabIndex = 5;
             label3.Text = "Количество квадартов";
             // 
+            // make_random
+            // 
+            make_random.AutoSize = true;
+            make_random.Location = new Point(11, 107);
+            make_random.Name = "make_random";
+            make_random.Size = new Size(191, 19);
+            make_random.TabIndex = 7;
+            make_random.Text = "Случайный размер квадратов";
+            make_random.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(222, 160);
+            ClientSize = new Size(222, 177);
+            Controls.Add(make_random);
             Controls.Add(number_of_squares);
             Controls.Add(label3);
             Controls.Add(field_width);
@@ -100,5 +112,6 @@
         private TextBox field_width;
         private TextBox number_of_squares;
         private Label label3;
+        private CheckBox make_random;
     }
 }
