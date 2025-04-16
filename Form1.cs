@@ -3,19 +3,22 @@ namespace Kursach_again
     public partial class Form1 : Form
     {
         Form field = new Form();
+        Form position_matrix = new Form();
         List<int[]> field_matrix = new List<int[]>();
         List<Button> button_list = new List<Button>();
         List<int[]> variants = new List<int[]>();
         List<int[]> coords = new List<int[]>();
-        int scale = 1;
-        int new_scale = 10;
 
 
         public Form1()
         {
             InitializeComponent();
+            field.FormClosed += field_closed;
+            field.Text = "Поле";
+            choose_scale.DataSource = new List<int>() { 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30 };
+            position_matrix.FormClosing += matrix_closing;
         }
-        
+
         private bool ValidateFields()
         {
 
@@ -48,7 +51,7 @@ namespace Kursach_again
                 }
 
                 Button button = new Button();
-                button.Size = new Size(sz * scale, sz * scale);
+                button.Size = new Size(sz, sz);
                 button.Text = sz.ToString();
                 button.MouseDown += square_Click;
 
@@ -155,17 +158,18 @@ namespace Kursach_again
         {
             field.Controls.Clear();
 
+            int scale = int.Parse(choose_scale.Text);
+
             for (int i = 0; i < button_list.Count; i++)
             {
                 Button button = button_list[i];
 
-                button.Location = new Point(coords[i][0] * new_scale, coords[i][1] * new_scale);
-                button.Size = new Size(coords[i][2] * new_scale, coords[i][2] * new_scale);
+                button.Location = new Point(coords[i][0] * scale, coords[i][1] * scale);
+                button.Size = new Size(coords[i][2] * scale, coords[i][2] * scale);
 
                 field.Controls.Add(button);
             }
         }
-
 
         private void place_buttons(int width, int height)
         {
@@ -184,7 +188,7 @@ namespace Kursach_again
                     {
                         if (field_matrix[y][x] == 1)
                         {
-                            if (x + button.Width > width - 1) break;                         
+                            if (x + button.Width > width - 1) break;
 
                             //if (y + button.Height > field_matrix.Count) add_height(button.Height, width); //Если высота сразу максимальна, то это не нужно
 
@@ -201,24 +205,49 @@ namespace Kursach_again
             }
 
             build_buttons();
+            update_grid();
         }
 
+        private void update_grid()
+        {
+            position_matrix.Controls.Clear();
+            string s = "";
+
+            for (int i = 0; i < field_matrix.Count; i++)
+            {
+                for (int j = 0; j < field_matrix[i].Count(); j++) s += field_matrix[i][j] + " ";
+
+                s += "\r\n";
+
+                if (field_matrix[i].Sum() == 2) break;
+            }
+
+            TextBox textbox = new TextBox();
+            textbox.Text = s;
+            textbox.Multiline = true;
+            textbox.ReadOnly = true;
+            textbox.Size = new Size(field_matrix[0].Count() * 15, field_matrix[0].Count() * 15);
+            textbox.Font = new Font("Lucida Console", 9);
+
+            position_matrix.Size = textbox.Size;
+            position_matrix.Controls.Add(textbox);
+        }
 
         private void square_Click(object sender, MouseEventArgs e)
         {
             var button = sender as Button;
             button_size_rollback();
 
-            if (e.Button == MouseButtons.Left && (button.Width + scale) < field_matrix[0].Count())
-            {               
-                button.Size = new Size(button.Width + scale, button.Height + scale);
-                button.Text = (button.Width / scale).ToString();
+            if (e.Button == MouseButtons.Left && (button.Width + 1) < field_matrix[0].Count())
+            {
+                button.Size = new Size(button.Width + 1, button.Height + 1);
+                button.Text = button.Width.ToString();
             }
 
-            if (e.Button == MouseButtons.Right && (button.Width - scale) > 0)
+            if (e.Button == MouseButtons.Right && (button.Width - 1) > 0)
             {
-                button.Size = new Size(button.Width - scale, button.Height - scale);
-                button.Text = (button.Width / scale).ToString();
+                button.Size = new Size(button.Width - 1, button.Height - 1);
+                button.Text = button.Width.ToString();
             }
 
             place_buttons(field_matrix[0].Count(), field_matrix.Count());
@@ -227,6 +256,11 @@ namespace Kursach_again
 
         private void button1_Click(object sender, EventArgs e)
         {
+            field.Hide();
+            field_matrix.Clear();
+            button_list.Clear();
+
+
             if (!ValidateFields())
             {
                 MessageBox.Show("Одно или несколько введённых вами значений не являются числами.", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -251,17 +285,52 @@ namespace Kursach_again
 
             int height = squares_count * width + 1; //Максимально возможная высота
 
-           
+
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            //position_matrix.Size = new Size(width * 2 + 1, height);
+            //position_matrix.AutoSize = true;
+            //position_matrix.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
             make_buttons(squares_count, width + 1, make_random.Checked);
-            
-            place_buttons(width * scale + 1, height * scale);
 
-            
+            place_buttons(width + 1, height);
+
+            button1.Text = "Перестроить поле";
+            show_matrix.Enabled = true;
             field.Show();
-            button1.Enabled = false;
+        }
+
+        private void field_closed(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void matrix_closing(object sender, EventArgs e)
+        {
+            position_matrix.Hide();
+        }
+
+        private void choose_scale_TextChanged(object sender, EventArgs e)
+        {
+            if (button1.Text == "Начать") return;
+
+            button_size_rollback();
+            build_buttons();
+        }
+
+        private void matrix_closing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                position_matrix.Hide();
+            }
+        }
+
+        private void show_matrix_Click(object sender, EventArgs e)
+        {
+            position_matrix.Show();
         }
     }
 }
