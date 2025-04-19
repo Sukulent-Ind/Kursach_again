@@ -15,7 +15,7 @@ namespace Kursach_again
             InitializeComponent();
             field.FormClosed += field_closed;
             field.Text = "Поле";
-            choose_scale.DataSource = new List<int>() { 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30 };
+            choose_scale.DataSource = new List<int>() { 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 50 };
             position_matrix.FormClosing += matrix_closing;
         }
 
@@ -91,6 +91,8 @@ namespace Kursach_again
                     if (i == 0 || j == 0 || i == size || j == size) copy_field_matrix[y + i][x + j] += 1;
                     else copy_field_matrix[y + i][x + j] += 2;
 
+                    //if (j == size) copy_field_matrix[y + i][x + j] = 2;
+
                     if (copy_field_matrix[y + i][x + j] > 2) return true;
                 }
             }
@@ -104,9 +106,9 @@ namespace Kursach_again
 
             for (int i = 0; i <= size; i++)
             {
-                if (field_matrix[y + i][x] == 1) touch_sum++;
+                if (field_matrix[y + i][x] == 1 || field_matrix[y + i][x] == 2) touch_sum++;
 
-                if (field_matrix[y][x + i] == 1) touch_sum++;
+                if (field_matrix[y][x + i] == 1 || field_matrix[i][x + i] == 2) touch_sum++;
 
             }
 
@@ -128,15 +130,34 @@ namespace Kursach_again
 
             int x = variants[id][1], y = variants[id][2], size = variants[id][3];
 
+            int prev = 0;
+
             for (int i = 0; i <= size; i++)
             {
+
                 for (int j = 0; j <= size; j++)
                 {
                     if (i == 0 || j == 0 || i == size || j == size) field_matrix[y + i][x + j] += 1;
                     else field_matrix[y + i][x + j] += 2;
-                }
-            }
 
+                    if (i == 0 && y > 0) // Коррекция пересечения правой и верхней граней
+                    {
+                        if (field_matrix[y - 1][x + j] == 1 && field_matrix[y][x + j] == 2)
+                            field_matrix[y][x + j] = 1;
+                    }
+                    
+                    if (j == 0) // Коррекция пересечения нижней и левой граней
+                    {
+                        if (prev == 2 && field_matrix[y + i][x] == 1)
+                            field_matrix[y + i - 1][x] = 1;
+
+                        prev = field_matrix[y + i][x];
+                    }
+                        
+                }
+
+            }
+                
             field_matrix[y + size][x] = 1;
             field_matrix[y][x + size] = 1;
             field_matrix[y + size][x + size] = 1;
@@ -164,6 +185,7 @@ namespace Kursach_again
             {
                 Button button = button_list[i];
 
+                button.Text = coords[i][2] + " (" + (i + 1) + ")";
                 button.Location = new Point(coords[i][0] * scale, coords[i][1] * scale);
                 button.Size = new Size(coords[i][2] * scale, coords[i][2] * scale);
 
@@ -186,6 +208,7 @@ namespace Kursach_again
 
                     for (int x = 0; x < width; x++)
                     {
+
                         if (field_matrix[y][x] == 1)
                         {
                             if (x + button.Width > width - 1) break;
@@ -241,13 +264,11 @@ namespace Kursach_again
             if (e.Button == MouseButtons.Left && (button.Width + 1) < field_matrix[0].Count())
             {
                 button.Size = new Size(button.Width + 1, button.Height + 1);
-                button.Text = button.Width.ToString();
             }
 
             if (e.Button == MouseButtons.Right && (button.Width - 1) > 0)
             {
                 button.Size = new Size(button.Width - 1, button.Height - 1);
-                button.Text = button.Width.ToString();
             }
 
             place_buttons(field_matrix[0].Count(), field_matrix.Count());
@@ -277,9 +298,9 @@ namespace Kursach_again
 
             int width = int.Parse(field_width.Text);
 
-            if (width < 5)
+            if (width < 2)
             {
-                MessageBox.Show("Ширина поля должна быть как минимум 5!", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Ширина поля должна быть как минимум 2!", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -288,9 +309,6 @@ namespace Kursach_again
 
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            //position_matrix.Size = new Size(width * 2 + 1, height);
-            //position_matrix.AutoSize = true;
-            //position_matrix.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
             make_buttons(squares_count, width + 1, make_random.Checked);
 
