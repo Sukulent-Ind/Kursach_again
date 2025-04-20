@@ -102,13 +102,21 @@ namespace Kursach_again
 
         private int find_touching_sum(int x, int y, int size)
         {
-            int touch_sum = -1;
+            int touch_sum = -2;
 
             for (int i = 0; i <= size; i++)
             {
-                if (field_matrix[y + i][x] == 1 || field_matrix[y + i][x] == 2) touch_sum++;
+                if (field_matrix[y + i][x] == 1) touch_sum++;
 
-                if (field_matrix[y][x + i] == 1 || field_matrix[i][x + i] == 2) touch_sum++;
+                //if (field_matrix[y][x + i] == 1) touch_sum++;
+
+                if (y > 0 && x + i > 0) //  && x + i != field_matrix[0].Count() - 1
+                {
+                    if (field_matrix[y][x + i] == 1 && (field_matrix[y - 1][x + i - 1] != 2 && field_matrix[y - 1][x + i] != 2)) continue;
+                    
+                }
+                
+                if (field_matrix[y][x + i] == 1) touch_sum++;
 
             }
 
@@ -130,7 +138,8 @@ namespace Kursach_again
 
             int x = variants[id][1], y = variants[id][2], size = variants[id][3];
 
-            int prev = 0;
+            int l_prev = 0;
+            int r_prev = 0;
 
             for (int i = 0; i <= size; i++)
             {
@@ -148,19 +157,56 @@ namespace Kursach_again
                     
                     if (j == 0) // Коррекция пересечения нижней и левой граней
                     {
-                        if (prev == 2 && field_matrix[y + i][x] == 1)
+                        if (l_prev == 2 && field_matrix[y + i][x] == 1)
                             field_matrix[y + i - 1][x] = 1;
 
-                        prev = field_matrix[y + i][x];
+                        l_prev = field_matrix[y + i][x];
                     }
+
+                    if (j == size) //Коррекция пересечения правой и нижней граней
+                    {
+                        if (r_prev == 2 && field_matrix[y + i][x + size] == 1)
+                            field_matrix[y + i - 1][x + size] = 1;
+
+                        r_prev = field_matrix[y + i][x + size];
+                    } 
+
+
                         
                 }
 
             }
-                
+
             field_matrix[y + size][x] = 1;
-            field_matrix[y][x + size] = 1;
+            //if (y + size == field_matrix.Count() - 1)
+            //    field_matrix[y + size][x] = 2;
+
+            //else if (field_matrix[y + size + 1][x] == 2)
+            //    field_matrix[y + size][x] = 2;
+
+            //else
+            //    field_matrix[y + size][x] = 1;
+
+
+            //field_matrix[y][x + size] = 1;
+            if (x + size < field_matrix[0].Count() - 1 && field_matrix[y][x + size + 1] == 2) // || x + size == field_matrix[0].Count() - 1
+                field_matrix[y][x + size] = 2;
+
+            else field_matrix[y][x + size] = 1;
+
+
             field_matrix[y + size][x + size] = 1;
+            //if (y + size == field_matrix.Count() - 1)
+            //    field_matrix[y + size][x + size] = 2;
+
+            //else if (field_matrix[y + size + 1][x + size] == 2)
+            //    field_matrix[y + size][x + size] = 2;
+
+            //else
+            //    field_matrix[y + size][x + size] = 1;
+
+
+
 
             coords.Add([x, y, size]);
         }
@@ -197,10 +243,15 @@ namespace Kursach_again
         {
             make_matrix(width, height);
             coords.Clear();
+            int cnt = 1;
+            bool yes = false;
 
             foreach (Button button in button_list)
             {
                 variants.Clear();
+
+                if (cnt == 19 && button.Width == 2)
+                    yes = true;
 
                 for (int y = 0; y < height; y++)
                 {
@@ -208,6 +259,8 @@ namespace Kursach_again
 
                     for (int x = 0; x < width; x++)
                     {
+                        if (yes && y == 7)
+                            cnt += 0;
 
                         if (field_matrix[y][x] == 1)
                         {
@@ -215,7 +268,7 @@ namespace Kursach_again
 
                             //if (y + button.Height > field_matrix.Count) add_height(button.Height, width); //Если высота сразу максимальна, то это не нужно
 
-                            if (check_crosses(x, y, button.Width)) break;
+                            if (check_crosses(x, y, button.Width)) continue;
 
                             variants.Add([find_touching_sum(x, y, button.Width), x, y, button.Width]);
 
@@ -223,8 +276,13 @@ namespace Kursach_again
                     }
                 }
 
+                int a = 0;
+                if (button.Width == 3)
+                    a = 1;
+
                 find_and_build_optimal_square();
 
+                cnt++;
             }
 
             build_buttons();
