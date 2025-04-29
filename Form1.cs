@@ -103,10 +103,13 @@ namespace Kursach_again
         private int find_touching_sum(int x, int y, int size)
         {
             int touch_sum = -2;
+            int prev = 1;
 
             for (int i = 0; i <= size; i++)
             {
-                if (field_matrix[y + i][x] == 1) touch_sum++;
+                if (prev == 1) if (field_matrix[y + i][x] == 1) touch_sum++;
+                prev = field_matrix[y + i][x];
+
 
                 //if (field_matrix[y][x + i] == 1) touch_sum++;
 
@@ -171,8 +174,13 @@ namespace Kursach_again
                         r_prev = field_matrix[y + i][x + size];
                     } 
 
+                    if (i == size)
+                        if (y + i < field_matrix[0].Count() - 1)
+                            if (field_matrix[y + i + 1][x + j] == 1)
+                                field_matrix[y + i][x + j] = 1;
 
-                        
+
+
                 }
 
             }
