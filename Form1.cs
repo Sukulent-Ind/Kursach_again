@@ -24,6 +24,10 @@ namespace Kursach_again
             tests.Add([4, 3, 1, 1, 3, 3, 2, 1, 1, 3, 2, 2, 1, 1, 2, 3, 2, 7]);
             tests.Add([1, 2, 3, 1, 1, 2, 1, 1, 2, 1, 3, 1, 3, 3, 1, 1, 1, 1, 2, 1, 2, 6, 1, 1, 2, 6]);
             tests.Add([5, 6, 3, 2, 1, 2, 3, 1, 1, 4, 1, 1, 1, 1, 2, 3, 2, 3, 2, 1, 1, 3, 2, 2, 5, 2, 1, 1, 2, 1, 11]);
+            tests.Add([8, 4, 3, 1, 1, 2, 2, 6, 2, 1, 1, 1, 1, 1, 2, 3, 1, 1, 1, 2, 2, 2, 4, 1, 1, 3, 3, 13]);
+            tests.Add([2, 3, 1, 3, 2, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1, 1, 3, 3, 8]);
+            tests.Add([3, 2, 2, 2, 3, 1, 1, 3, 1, 2, 2, 5]);
+            tests.Add([2, 3, 5, 2, 2, 5, 4, 2, 1, 1, 1, 1, 1, 3, 3, 5, 4, 4, 2, 2, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2, 12]);
             //
             test_number.Maximum = tests.Count();
         }
@@ -97,10 +101,10 @@ namespace Kursach_again
 
         private int find_touching_sum(int x, int y, int size)
         {
-            int touch_sum = -2;
+            int touch_sum = 0;
             int prev = 1;
 
-            for (int i = 0; i <= size; i++)
+            for (int i = 1; i <= size; i++)
             {
                 if (prev == 1) if (field_matrix[y + i][x] == 1) touch_sum++;
                 prev = field_matrix[y + i][x];
@@ -170,7 +174,7 @@ namespace Kursach_again
                     }
 
                     if (i == size)
-                        if (y + i < field_matrix[0].Count() - 1)
+                        if (y + i < field_matrix.Count() - 1)
                             if (field_matrix[y + i + 1][x + j] == 1)
                                 field_matrix[y + i][x + j] = 1;
 
@@ -192,7 +196,8 @@ namespace Kursach_again
 
 
             //field_matrix[y][x + size] = 1;
-            if (x + size < field_matrix[0].Count() - 1 && field_matrix[y][x + size + 1] == 2) // || x + size == field_matrix[0].Count() - 1
+            if (x + size < field_matrix[0].Count() - 1) // || x + size == field_matrix[0].Count() - 1
+                if (field_matrix[y][x + size + 1] == 2 & field_matrix[y][x + size - 1] != 1)
                 field_matrix[y][x + size] = 2;
 
             else field_matrix[y][x + size] = 1;
@@ -253,7 +258,7 @@ namespace Kursach_again
             {
                 variants.Clear();
 
-                if (cnt == 19 && button.Width == 2)
+                if (cnt == 18)
                     yes = true;
 
                 for (int y = 0; y < height; y++)
@@ -273,6 +278,9 @@ namespace Kursach_again
 
                             if (check_crosses(x, y, button.Width)) continue;
 
+                            if (cnt == 7 && x == 5 && y == 5)
+                                yes = true;
+
                             int[] res = new int[4] { find_touching_sum(x, y, button.Width), x, y, button.Width };
 
                             variants.Add(res);
@@ -281,9 +289,7 @@ namespace Kursach_again
                     }
                 }
 
-                int a = 0;
-                if (button.Width == 3)
-                    a = 1;
+               
 
                 find_and_build_optimal_square();
 
@@ -372,7 +378,7 @@ namespace Kursach_again
 
         private void choose_scale_TextChanged(object sender, EventArgs e)
         {
-            if (button1.Text == "Начать") return;
+            if (button1.Text == "Начать" && !test_mode) return;
 
             button_size_rollback();
             build_buttons();
