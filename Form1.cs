@@ -2,14 +2,14 @@ namespace Kursach_again
 {
     public partial class Form1 : Form
     {
-        Form field = new Form();
-        Form position_matrix = new Form();
-        List<int[]> field_matrix = new List<int[]>();
-        List<Button> button_list = new List<Button>();
-        List<int[]> variants = new List<int[]>();
-        List<int[]> coords = new List<int[]>();
-        List<int[]> tests = new List<int[]>();
-        bool test_mode = false;
+        Form field = new Form(); //Форма для расположения квадратов
+        Form position_matrix = new Form(); //Форма для демонстрации матрицы квадратов
+        List<int[]> field_matrix = new List<int[]>(); //Матрица квадратов
+        List<Button> button_list = new List<Button>(); //Список кнопок
+        List<int[]> variants = new List<int[]>(); //Список возможных вариантов расположения
+        List<int[]> coords = new List<int[]>(); //Список координат
+        List<int[]> tests = new List<int[]>(); //Список тестов
+        bool test_mode = false; //Активен ли тестовый режим
 
 
 
@@ -20,7 +20,8 @@ namespace Kursach_again
             field.Text = "Поле";
             choose_scale.DataSource = new List<int>() { 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 50 };
             position_matrix.FormClosing += matrix_closing;
-            //тесты
+
+            //------------------------тесты-----------------------------------
             tests.Add([4, 3, 1, 1, 3, 3, 2, 1, 1, 3, 2, 2, 1, 1, 2, 3, 2, 7]);
             tests.Add([1, 2, 3, 1, 1, 2, 1, 1, 2, 1, 3, 1, 3, 3, 1, 1, 1, 1, 2, 1, 2, 6, 1, 1, 2, 6]);
             tests.Add([5, 6, 3, 2, 1, 2, 3, 1, 1, 4, 1, 1, 1, 1, 2, 3, 2, 3, 2, 1, 1, 3, 2, 2, 5, 2, 1, 1, 2, 1, 11]);
@@ -28,12 +29,15 @@ namespace Kursach_again
             tests.Add([2, 3, 1, 3, 2, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1, 1, 3, 3, 8]);
             tests.Add([3, 2, 2, 2, 3, 1, 1, 3, 1, 2, 2, 5]);
             tests.Add([2, 3, 5, 2, 2, 5, 4, 2, 1, 1, 1, 1, 1, 3, 3, 5, 4, 4, 2, 2, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2, 12]);
-            //
+            tests.Add([5, 4, 2, 1, 3, 2, 2, 6, 5, 1, 2, 2, 1, 1, 2, 1, 1, 2, 3, 3, 2, 1, 1, 13]);
+            tests.Add([1, 2, 4, 3, 2, 1, 1, 1, 1, 1, 5, 2, 2, 5, 1, 1, 1, 2, 2, 2, 7]);
+            //----------------------------------------------------------------
+
             test_number.Maximum = tests.Count();
         }
 
 
-
+        //-----------------Создание списка кнопок-----------------------------
         private void make_buttons(int amount, int width, bool random)
         {
             int sz = 1;
@@ -42,11 +46,12 @@ namespace Kursach_again
 
             for (int i = 0; i < amount; i++)
             {
-                if (random)
+                if (random) //Если выбран случайный размер квадратов
                 {
                     Random rnd = new Random();
                     sz = rnd.Next(2, width);
                 }
+
                 if (test_mode) sz = tests[(int)test_number.Value - 1][i];
 
                 Button button = new Button();
@@ -58,6 +63,7 @@ namespace Kursach_again
             }
         }
 
+        //-----------------Создание матрицы поля------------------------------
         private void make_matrix(int width, int height)
         {
             field_matrix.Clear();
@@ -78,8 +84,10 @@ namespace Kursach_again
             }
         }
 
+        //-------Проверка пересечения нового квадрата с уже установленными----
         private bool check_crosses(int x, int y, int size)
         {
+            //Создание копии матрицы
             List<int[]> copy_field_matrix = new List<int[]>();
             field_matrix.ForEach((item) => { copy_field_matrix.Add((int[])item.Clone()); });
 
@@ -90,15 +98,14 @@ namespace Kursach_again
                     if (i == 0 || j == 0 || i == size || j == size) copy_field_matrix[y + i][x + j] += 1;
                     else copy_field_matrix[y + i][x + j] += 2;
 
-                    //if (j == size) copy_field_matrix[y + i][x + j] = 2;
-
-                    if (copy_field_matrix[y + i][x + j] > 2) return true;
+                    if (copy_field_matrix[y + i][x + j] > 2) return true; //Число больше 3 - пересечение
                 }
             }
 
             return false;
         }
 
+        //--------Найти площадь соприкаснавения с другими квадратами----------
         private int find_touching_sum(int x, int y, int size)
         {
             int touch_sum = 0;
@@ -106,17 +113,14 @@ namespace Kursach_again
 
             for (int i = 1; i <= size; i++)
             {
+                //Позволяет правильно вычислять касание правой стороны, в случае если есть пролёты 
                 if (prev == 1) if (field_matrix[y + i][x] == 1) touch_sum++;
                 prev = field_matrix[y + i][x];
 
-
-                //if (field_matrix[y][x + i] == 1) touch_sum++;
-
-                if (y > 0 && x + i > 0) //  && x + i != field_matrix[0].Count() - 1
-                {
-                    if (field_matrix[y][x + i] == 1 && (field_matrix[y - 1][x + i - 1] != 2 && field_matrix[y - 1][x + i] != 2)) continue;
-
-                }
+                //Для корректного вычисления касания верхней стороны
+                if (y > 0 && x + i > 0) 
+                    if (field_matrix[y][x + i] == 1 && (field_matrix[y - 1][x + i - 1] != 2 && field_matrix[y - 1][x + i] != 2)) 
+                        continue;
 
                 if (field_matrix[y][x + i] == 1) touch_sum++;
 
@@ -125,8 +129,10 @@ namespace Kursach_again
             return touch_sum;
         }
 
+        //-Выбирает положение с наибольшей площадью касания и устанавливает квадрат-
         private void find_and_build_optimal_square()
         {
+            //Выбор варианта с наибольшей площадбю касания
             int id = 0, max_sum = 0;
 
             for (int i = 0; i < variants.Count; i++)
@@ -157,7 +163,7 @@ namespace Kursach_again
                             field_matrix[y][x + j] = 1;
                     }
 
-                    if (j == 0) // Коррекция пересечения нижней и левой граней
+                    if (j == 0) // Коррекция пересечения левой и нижней граней
                     {
                         if (l_prev == 2 && field_matrix[y + i][x] == 1)
                             field_matrix[y + i - 1][x] = 1;
@@ -173,52 +179,30 @@ namespace Kursach_again
                         r_prev = field_matrix[y + i][x + size];
                     }
 
-                    if (i == size)
+                    if (i == size) //Коррекция пересечения нижней и верхней граней
                         if (y + i < field_matrix.Count() - 1)
                             if (field_matrix[y + i + 1][x + j] == 1)
                                 field_matrix[y + i][x + j] = 1;
-
-
-
                 }
 
             }
 
-            field_matrix[y + size][x] = 1;
-            //if (y + size == field_matrix.Count() - 1)
-            //    field_matrix[y + size][x] = 2;
+            field_matrix[y + size][x] = 1; //Корркция левого нижнего угла
 
-            //else if (field_matrix[y + size + 1][x] == 2)
-            //    field_matrix[y + size][x] = 2;
-
-            //else
-            //    field_matrix[y + size][x] = 1;
-
-
-            //field_matrix[y][x + size] = 1;
-            if (x + size < field_matrix[0].Count() - 1) // || x + size == field_matrix[0].Count() - 1
+            if (x + size < field_matrix[0].Count() - 1) //Корркция правого верхнего угла
                 if (field_matrix[y][x + size + 1] == 2 & field_matrix[y][x + size - 1] != 1)
                 field_matrix[y][x + size] = 2;
 
             else field_matrix[y][x + size] = 1;
 
-
-            field_matrix[y + size][x + size] = 1;
-            //if (y + size == field_matrix.Count() - 1)
-            //    field_matrix[y + size][x + size] = 2;
-
-            //else if (field_matrix[y + size + 1][x + size] == 2)
-            //    field_matrix[y + size][x + size] = 2;
-
-            //else
-            //    field_matrix[y + size][x + size] = 1;
-
+            field_matrix[y + size][x + size] = 1; //Корркция правого нижнего угла
 
             int[] res = new int[3] { x, y, size };
 
             coords.Add(res);
         }
 
+        //--------Возвращение кнопкам неотмасштабированного значения----------
         private void button_size_rollback()
         {
             for (int i = 0; i < button_list.Count; i++)
@@ -229,6 +213,7 @@ namespace Kursach_again
             }
         }
 
+        //------------------Построение кнопок на форме------------------------
         private void build_buttons()
         {
             field.Controls.Clear();
@@ -247,19 +232,17 @@ namespace Kursach_again
             }
         }
 
+        //------------------------Главная функция-----------------------------
         private void place_buttons(int width, int height)
         {
             make_matrix(width, height);
             coords.Clear();
-            int cnt = 1;
-            bool yes = false;
+            //int cnt = 1;
+            //bool yes = false;
 
             foreach (Button button in button_list)
             {
                 variants.Clear();
-
-                if (cnt == 18)
-                    yes = true;
 
                 for (int y = 0; y < height; y++)
                 {
@@ -267,39 +250,35 @@ namespace Kursach_again
 
                     for (int x = 0; x < width; x++)
                     {
-                        if (yes && y == 7)
-                            cnt += 0;
 
-                        if (field_matrix[y][x] == 1)
+
+                        if (field_matrix[y][x] == 1) //Левый верхний угол квадрата может быть расположен только в единицу
                         {
-                            if (x + button.Width > width - 1) break;
+                            if (x + button.Width > width - 1) break; //Переход на след. строку, если ширина недостаточна
 
-                            //if (y + button.Height > field_matrix.Count) add_height(button.Height, width); //Если высота сразу максимальна, то это не нужно
+                            if (check_crosses(x, y, button.Width)) continue; //Вариант пропускаетя при пересечении с другими квадратами
 
-                            if (check_crosses(x, y, button.Width)) continue;
-
-                            if (cnt == 7 && x == 5 && y == 5)
-                                yes = true;
+                            //if (cnt == 7 && x == 5 && y == 5) //Для дебага :)
+                            //    yes = true;
 
                             int[] res = new int[4] { find_touching_sum(x, y, button.Width), x, y, button.Width };
 
-                            variants.Add(res);
+                            variants.Add(res); //Вариант расположения имеет: сумму касания, координаты, размер кнопки
 
                         }
                     }
-                }
+                }             
 
-               
+                find_and_build_optimal_square(); //Располагаем квадрат на матрице
 
-                find_and_build_optimal_square();
-
-                cnt++;
+                //cnt++;
             }
 
-            build_buttons();
-            update_grid();
+            build_buttons(); //Располагаем кнопки на форме
+            update_grid(); //Обновляем матрицу для демонстрации
         }
 
+        //----Обновление формы, на которой можно увидеть матрицу квадратов----
         private void update_grid()
         {
             position_matrix.Controls.Clear();
@@ -325,6 +304,7 @@ namespace Kursach_again
             position_matrix.Controls.Add(textbox);
         }
 
+        //----------------Изменение размера квадратов-------------------------
         private void square_Click(object sender, MouseEventArgs e)
         {
             var button = sender as Button;
@@ -344,6 +324,7 @@ namespace Kursach_again
 
         }
 
+        //------------------Обработка кнопки Начать---------------------------
         private void button1_Click(object sender, EventArgs e)
         {
             field.Hide();
@@ -428,6 +409,7 @@ namespace Kursach_again
             }
         }
 
+        //---------------------Обработка кнопки Тест---------------------------
         private void button3_Click(object sender, EventArgs e)
         {
             field.Hide();
