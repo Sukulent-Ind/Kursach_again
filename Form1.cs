@@ -8,6 +8,9 @@ namespace Kursach_again
         List<Button> button_list = new List<Button>();
         List<int[]> variants = new List<int[]>();
         List<int[]> coords = new List<int[]>();
+        List<int[]> tests = new List<int[]>();
+        bool test_mode = false;
+
 
 
         public Form1()
@@ -17,30 +20,21 @@ namespace Kursach_again
             field.Text = "Поле";
             choose_scale.DataSource = new List<int>() { 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 50 };
             position_matrix.FormClosing += matrix_closing;
+            //тесты
+            tests.Add([4, 3, 1, 1, 3, 3, 2, 1, 1, 3, 2, 2, 1, 1, 2, 3, 2, 7]);
+            tests.Add([1, 2, 3, 1, 1, 2, 1, 1, 2, 1, 3, 1, 3, 3, 1, 1, 1, 1, 2, 1, 2, 6, 1, 1, 2, 6]);
+            tests.Add([5, 6, 3, 2, 1, 2, 3, 1, 1, 4, 1, 1, 1, 1, 2, 3, 2, 3, 2, 1, 1, 3, 2, 2, 5, 2, 1, 1, 2, 1, 11]);
+            //
+            test_number.Maximum = tests.Count();
         }
 
-        private bool ValidateFields()
-        {
 
-            bool isValid = true;
-
-            if (!(int.TryParse(field_width.Text, out int val)))
-            {
-                isValid = false;
-            }
-
-            if (!(int.TryParse(number_of_squares.Text, out int val2)))
-            {
-                isValid = false;
-            }
-
-
-            return isValid;
-        }
 
         private void make_buttons(int amount, int width, bool random)
         {
             int sz = 1;
+           
+            if (test_mode) amount = tests[(int)test_number.Value - 1].Count() - 1;
 
             for (int i = 0; i < amount; i++)
             {
@@ -49,6 +43,7 @@ namespace Kursach_again
                     Random rnd = new Random();
                     sz = rnd.Next(2, width);
                 }
+                if (test_mode) sz = tests[(int)test_number.Value - 1][i];
 
                 Button button = new Button();
                 button.Size = new Size(sz, sz);
@@ -116,9 +111,9 @@ namespace Kursach_again
                 if (y > 0 && x + i > 0) //  && x + i != field_matrix[0].Count() - 1
                 {
                     if (field_matrix[y][x + i] == 1 && (field_matrix[y - 1][x + i - 1] != 2 && field_matrix[y - 1][x + i] != 2)) continue;
-                    
+
                 }
-                
+
                 if (field_matrix[y][x + i] == 1) touch_sum++;
 
             }
@@ -157,7 +152,7 @@ namespace Kursach_again
                         if (field_matrix[y - 1][x + j] == 1 && field_matrix[y][x + j] == 2)
                             field_matrix[y][x + j] = 1;
                     }
-                    
+
                     if (j == 0) // Коррекция пересечения нижней и левой граней
                     {
                         if (l_prev == 2 && field_matrix[y + i][x] == 1)
@@ -172,7 +167,7 @@ namespace Kursach_again
                             field_matrix[y + i - 1][x + size] = 1;
 
                         r_prev = field_matrix[y + i][x + size];
-                    } 
+                    }
 
                     if (i == size)
                         if (y + i < field_matrix[0].Count() - 1)
@@ -214,9 +209,9 @@ namespace Kursach_again
             //    field_matrix[y + size][x + size] = 1;
 
 
+            int[] res = new int[3] { x, y, size };
 
-
-            coords.Add([x, y, size]);
+            coords.Add(res);
         }
 
         private void button_size_rollback()
@@ -278,7 +273,9 @@ namespace Kursach_again
 
                             if (check_crosses(x, y, button.Width)) continue;
 
-                            variants.Add([find_touching_sum(x, y, button.Width), x, y, button.Width]);
+                            int[] res = new int[4] { find_touching_sum(x, y, button.Width), x, y, button.Width };
+
+                            variants.Add(res);
 
                         }
                     }
@@ -347,31 +344,9 @@ namespace Kursach_again
             field_matrix.Clear();
             button_list.Clear();
 
-
-            if (!ValidateFields())
-            {
-                MessageBox.Show("Одно или несколько введённых вами значений не являются числами.", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            int squares_count = int.Parse(number_of_squares.Text);
-
-            if (squares_count <= 0)
-            {
-                MessageBox.Show("Должен быть как минимум один квадрат!", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            int width = int.Parse(field_width.Text);
-
-            if (width < 2)
-            {
-                MessageBox.Show("Ширина поля должна быть как минимум 2!", "Ошибка ввода", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
+            int squares_count = (int)number_of_squares.Value;
+            int width = (int)field_width.Value;
             int height = squares_count * width + 1; //Максимально возможная высота
-
 
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -415,6 +390,59 @@ namespace Kursach_again
         private void show_matrix_Click(object sender, EventArgs e)
         {
             position_matrix.Show();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (button2.Text == "Активировать")
+            {
+                field.Hide();
+                test_mode = true;
+                button2.Text = "Отключить";
+                field_width.Enabled = false;
+                number_of_squares.Enabled = false;
+                make_random.Enabled = false;
+                button1.Enabled = false;
+                button3.Enabled = true;
+                test_number.Enabled = true;
+
+            }
+            else
+            {
+                field.Hide();
+                test_mode = false;
+                button2.Text = "Активировать";
+                field_width.Enabled = true;
+                number_of_squares.Enabled = true;
+                make_random.Enabled = true;
+                button1.Enabled = true;
+                button3.Enabled = false;
+                test_number.Enabled= false;
+
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            field.Hide();
+            field_matrix.Clear();
+            button_list.Clear();
+
+            int n = (int)test_number.Value - 1;
+
+            int squares_count = tests[n].Count() - 1;
+            int width = tests[n][tests[n].Count() - 1];
+            int height = squares_count * width + 1; //Максимально возможная высота
+
+            field.AutoSize = true;
+            field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+
+            make_buttons(squares_count, width + 1, make_random.Checked);
+
+            place_buttons(width + 1, height);
+
+            show_matrix.Enabled = true;
+            field.Show();
         }
     }
 }
