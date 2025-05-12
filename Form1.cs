@@ -3,7 +3,7 @@ namespace Kursach_again
     public partial class Form1 : Form
     {
         Form field = new Form(); //Форма для расположения квадратов
-        Form position_matrix = new Form(); //Форма для демонстрации матрицы квадратов
+        Form position_matrix_form = new Form(); //Форма для демонстрации матрицы квадратов
         List<int[]> field_matrix = new List<int[]>(); //Матрица квадратов
         List<Button> button_list = new List<Button>(); //Список кнопок
         List<int[]> variants = new List<int[]>(); //Список возможных вариантов расположения
@@ -19,7 +19,8 @@ namespace Kursach_again
             field.FormClosed += field_closed;
             field.Text = "Поле";
             choose_scale.DataSource = new List<int>() { 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 50 };
-            position_matrix.FormClosing += matrix_closing;
+            position_matrix_form.FormClosing += matrix_form_closing;
+            field.FormClosing += field_closing;
 
             //------------------------тесты-----------------------------------
             tests.Add([4, 3, 1, 1, 3, 3, 2, 1, 1, 3, 2, 2, 1, 1, 2, 3, 2, 7]);
@@ -77,7 +78,7 @@ namespace Kursach_again
                 {
                     for (int j = 0; j < width; j++) line[j] = 0;
                     line[0] = 1;
-                    line[width - 1] = 1;
+
                 }
 
                 field_matrix.Add(line);
@@ -89,16 +90,17 @@ namespace Kursach_again
         {
             //Создание копии матрицы
             List<int[]> copy_field_matrix = new List<int[]>();
-            field_matrix.ForEach((item) => { copy_field_matrix.Add((int[])item.Clone()); });
+
+            for (int i = 0; i <= size; i++) copy_field_matrix.Add((int[])field_matrix[y + i].Clone());
 
             for (int i = 0; i <= size; i++)
             {
                 for (int j = 0; j <= size; j++)
                 {
-                    if (i == 0 || j == 0 || i == size || j == size) copy_field_matrix[y + i][x + j] += 1;
-                    else copy_field_matrix[y + i][x + j] += 2;
+                    if (i == 0 || j == 0 || i == size || j == size) copy_field_matrix[i][x + j] += 1;
+                    else copy_field_matrix[i][x + j] += 2;
 
-                    if (copy_field_matrix[y + i][x + j] > 2) return true; //Число больше 3 - пересечение
+                    if (copy_field_matrix[i][x + j] > 2) return true; //Число больше 3 - пересечение
                 }
             }
 
@@ -202,6 +204,22 @@ namespace Kursach_again
             coords.Add(res);
         }
 
+        //--------------Добавляет строки в список, когда надо-----------------
+        private int add_height(int height, int width)
+        {
+            for (int i = 0; i <= height + 1; i++)
+            {
+                int[] line = new int[width];
+
+                for (int j = 0; j < width; j++) line[j] = 0;
+                line[0] = 1;
+
+
+                field_matrix.Add(line);
+            }
+            return field_matrix.Count;
+        }
+
         //--------Возвращение кнопкам неотмасштабированного значения----------
         private void button_size_rollback()
         {
@@ -246,7 +264,8 @@ namespace Kursach_again
 
                 for (int y = 0; y < height; y++)
                 {
-                    if (field_matrix[y].Sum() == 2) break;
+                    if (field_matrix[y].Sum() == 1) break;
+                    if (field_matrix[y].Min() == 2) continue;
 
                     for (int x = 0; x < width; x++)
                     {
@@ -255,8 +274,15 @@ namespace Kursach_again
                         if (field_matrix[y][x] == 1) //Левый верхний угол квадрата может быть расположен только в единицу
                         {
                             if (x + button.Width > width - 1) break; //Переход на след. строку, если ширина недостаточна
+                            if (y + button.Height >= field_matrix.Count() - 1) 
+                                height = add_height(button.Height, width);
+                                
 
-                            if (check_crosses(x, y, button.Width)) continue; //Вариант пропускаетя при пересечении с другими квадратами
+                            int t_sum = 0;
+                            for (int i = 1; i <= button.Height; i++) t_sum += field_matrix[y + i][x];
+                            if (t_sum == 0) break;
+
+                            if (check_crosses(x, y, button.Width)) continue; //Вариант пропускаетя при пересечении с другими квадратами                      
 
                             //if (cnt == 7 && x == 5 && y == 5) //Для дебага :)
                             //    yes = true;
@@ -281,7 +307,7 @@ namespace Kursach_again
         //----Обновление формы, на которой можно увидеть матрицу квадратов----
         private void update_grid()
         {
-            position_matrix.Controls.Clear();
+            position_matrix_form.Controls.Clear();
             string s = "";
 
             for (int i = 0; i < field_matrix.Count; i++)
@@ -300,8 +326,8 @@ namespace Kursach_again
             textbox.Size = new Size(field_matrix[0].Count() * 15, field_matrix[0].Count() * 15);
             textbox.Font = new Font("Lucida Console", 9);
 
-            position_matrix.Size = textbox.Size;
-            position_matrix.Controls.Add(textbox);
+            position_matrix_form.Size = textbox.Size;
+            position_matrix_form.Controls.Add(textbox);
         }
 
         //----------------Изменение размера квадратов-------------------------
@@ -333,7 +359,7 @@ namespace Kursach_again
 
             int squares_count = (int)number_of_squares.Value;
             int width = (int)field_width.Value;
-            int height = squares_count * width + 1; //Максимально возможная высота
+            int height = 5 * width + 1; //Максимально возможная высота
 
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -354,7 +380,7 @@ namespace Kursach_again
 
         private void matrix_closing(object sender, EventArgs e)
         {
-            position_matrix.Hide();
+            position_matrix_form.Hide();
         }
 
         private void choose_scale_TextChanged(object sender, EventArgs e)
@@ -365,18 +391,27 @@ namespace Kursach_again
             build_buttons();
         }
 
-        private void matrix_closing(object sender, FormClosingEventArgs e)
+        private void matrix_form_closing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
             {
                 e.Cancel = true;
-                position_matrix.Hide();
+                position_matrix_form.Hide();
+            }
+        }
+
+        private void field_closing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                field.Hide();
             }
         }
 
         private void show_matrix_Click(object sender, EventArgs e)
         {
-            position_matrix.Show();
+            position_matrix_form.Show();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -420,7 +455,7 @@ namespace Kursach_again
 
             int squares_count = tests[n].Count() - 1;
             int width = tests[n][tests[n].Count() - 1];
-            int height = squares_count * width + 1; //Максимально возможная высота
+            int height = 5 * width + 1; //Максимально возможная высота
 
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
