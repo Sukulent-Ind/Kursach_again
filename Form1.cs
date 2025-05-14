@@ -365,7 +365,7 @@ namespace Kursach_again
 
             int squares_count = (int)number_of_squares.Value;
             int width = (int)field_width.Value;
-            int height = 5 * width + 1; //Максимально возможная высота
+            int height = 5 * width + 1;
 
             field.MinimumSize = new Size(10, 10);
             field.AutoSize = true;
@@ -462,7 +462,7 @@ namespace Kursach_again
 
             int squares_count = tests[n].Count() - 1;
             int width = tests[n][tests[n].Count() - 1];
-            int height = 5 * width + 1; //Максимально возможная высота
+            int height = 5 * width + 1;
 
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
