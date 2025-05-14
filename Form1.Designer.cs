@@ -207,17 +207,15 @@
             // field_width
             // 
             field_width.Location = new Point(165, 25);
-            field_width.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
-            field_width.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
+            field_width.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             field_width.Name = "field_width";
             field_width.Size = new Size(58, 23);
             field_width.TabIndex = 4;
-            field_width.Value = new decimal(new int[] { 2, 0, 0, 0 });
+            field_width.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // number_of_squares
             // 
             number_of_squares.Location = new Point(165, 69);
-            number_of_squares.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
             number_of_squares.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             number_of_squares.Name = "number_of_squares";
             number_of_squares.Size = new Size(58, 23);

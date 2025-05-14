@@ -32,6 +32,8 @@ namespace Kursach_again
             tests.Add([2, 3, 5, 2, 2, 5, 4, 2, 1, 1, 1, 1, 1, 3, 3, 5, 4, 4, 2, 2, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2, 12]);
             tests.Add([5, 4, 2, 1, 3, 2, 2, 6, 5, 1, 2, 2, 1, 1, 2, 1, 1, 2, 3, 3, 2, 1, 1, 13]);
             tests.Add([1, 2, 4, 3, 2, 1, 1, 1, 1, 1, 5, 2, 2, 5, 1, 1, 1, 2, 2, 2, 7]);
+            tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 2, 2, 3, 2, 2, 1,   1, 3, 1, 3, 2, 3, 50]);
+            tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 50]);
             //----------------------------------------------------------------
 
             test_number.Maximum = tests.Count();
@@ -50,7 +52,7 @@ namespace Kursach_again
                 if (random) //Если выбран случайный размер квадратов
                 {
                     Random rnd = new Random();
-                    sz = rnd.Next(2, width);
+                    sz = rnd.Next(1, width);
                 }
 
                 if (test_mode) sz = tests[(int)test_number.Value - 1][i];
@@ -157,7 +159,7 @@ namespace Kursach_again
                 for (int j = 0; j <= size; j++)
                 {
                     if (i == 0 || j == 0 || i == size || j == size) field_matrix[y + i][x + j] += 1;
-                    else field_matrix[y + i][x + j] += 2;
+                    else field_matrix[y + i][x + j] = 2;
 
                     if (i == 0 && y > 0) // Коррекция пересечения правой и верхней граней
                     {
@@ -171,6 +173,9 @@ namespace Kursach_again
                             field_matrix[y + i - 1][x] = 1;
 
                         l_prev = field_matrix[y + i][x];
+
+                        if (x > 0)
+                            if (field_matrix[y + i][x - 1] == 1) field_matrix[y + i][x] = 1;
                     }
 
                     if (j == size) //Коррекция пересечения правой и нижней граней
@@ -284,8 +289,7 @@ namespace Kursach_again
 
                             if (check_crosses(x, y, button.Width)) continue; //Вариант пропускаетя при пересечении с другими квадратами                      
 
-                            //if (cnt == 7 && x == 5 && y == 5) //Для дебага :)
-                            //    yes = true;
+                            
 
                             int[] res = new int[4] { find_touching_sum(x, y, button.Width), x, y, button.Width };
 
@@ -297,6 +301,8 @@ namespace Kursach_again
 
                 find_and_build_optimal_square(); //Располагаем квадрат на матрице
 
+                //if (cnt == 21) //Для дебага :)
+                //    yes = true;
                 //cnt++;
             }
 
@@ -361,6 +367,7 @@ namespace Kursach_again
             int width = (int)field_width.Value;
             int height = 5 * width + 1; //Максимально возможная высота
 
+            field.MinimumSize = new Size(10, 10);
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
