@@ -32,7 +32,7 @@ namespace Kursach_again
             tests.Add([2, 3, 5, 2, 2, 5, 4, 2, 1, 1, 1, 1, 1, 3, 3, 5, 4, 4, 2, 2, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2, 12]);
             tests.Add([5, 4, 2, 1, 3, 2, 2, 6, 5, 1, 2, 2, 1, 1, 2, 1, 1, 2, 3, 3, 2, 1, 1, 13]);
             tests.Add([1, 2, 4, 3, 2, 1, 1, 1, 1, 1, 5, 2, 2, 5, 1, 1, 1, 2, 2, 2, 7]);
-            tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 2, 2, 3, 2, 2, 1,   1, 3, 1, 3, 2, 3, 50]);
+            tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 2, 2, 3, 2, 2, 1, 1, 3, 1, 3, 2, 3, 50]);
             tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 50]);
             //----------------------------------------------------------------
 
@@ -41,19 +41,14 @@ namespace Kursach_again
 
 
         //-----------------Создание списка кнопок-----------------------------
-        private void make_buttons(int amount, int width, bool random)
+        private void make_buttons(int amount, int width)
         {
             int sz = 1;
-           
+
             if (test_mode) amount = tests[(int)test_number.Value - 1].Count() - 1;
 
             for (int i = 0; i < amount; i++)
             {
-                if (random) //Если выбран случайный размер квадратов
-                {
-                    Random rnd = new Random();
-                    sz = rnd.Next(1, width);
-                }
 
                 if (test_mode) sz = tests[(int)test_number.Value - 1][i];
 
@@ -122,8 +117,8 @@ namespace Kursach_again
                 prev = field_matrix[y + i][x];
 
                 //Для корректного вычисления касания верхней стороны
-                if (y > 0 && x + i > 0) 
-                    if (field_matrix[y][x + i] == 1 && (field_matrix[y - 1][x + i - 1] != 2 && field_matrix[y - 1][x + i] != 2)) 
+                if (y > 0 && x + i > 0)
+                    if (field_matrix[y][x + i] == 1 && (field_matrix[y - 1][x + i - 1] != 2 && field_matrix[y - 1][x + i] != 2))
                         continue;
 
                 if (field_matrix[y][x + i] == 1) touch_sum++;
@@ -134,7 +129,7 @@ namespace Kursach_again
         }
 
         //-Выбирает положение с наибольшей площадью касания и устанавливает квадрат-
-        private void find_and_build_optimal_square()
+        private void find_and_build_optimal_square(int size)
         {
             //Выбор варианта с наибольшей площадбю касания
             int id = 0, max_sum = 0;
@@ -148,61 +143,19 @@ namespace Kursach_again
                 }
             }
 
-            int x = variants[id][1], y = variants[id][2], size = variants[id][3];
-
-            int l_prev = 0;
-            int r_prev = 0;
+            int x = variants[id][1], y = variants[id][2];
 
             for (int i = 0; i <= size; i++)
             {
 
                 for (int j = 0; j <= size; j++)
                 {
-                    if (i == 0 || j == 0 || i == size || j == size) field_matrix[y + i][x + j] += 1;
+                    if (i == 0 || j == 0 || i == size || j == size) field_matrix[y + i][x + j] = 1;
                     else field_matrix[y + i][x + j] = 2;
-
-                    if (i == 0 && y > 0) // Коррекция пересечения правой и верхней граней
-                    {
-                        if (field_matrix[y - 1][x + j] == 1 && field_matrix[y][x + j] == 2)
-                            field_matrix[y][x + j] = 1;
-                    }
-
-                    if (j == 0) // Коррекция пересечения левой и нижней граней
-                    {
-                        if (l_prev == 2 && field_matrix[y + i][x] == 1)
-                            field_matrix[y + i - 1][x] = 1;
-
-                        l_prev = field_matrix[y + i][x];
-
-                        if (x > 0)
-                            if (field_matrix[y + i][x - 1] == 1) field_matrix[y + i][x] = 1;
-                    }
-
-                    if (j == size) //Коррекция пересечения правой и нижней граней
-                    {
-                        if (r_prev == 2 && field_matrix[y + i][x + size] == 1)
-                            field_matrix[y + i - 1][x + size] = 1;
-
-                        r_prev = field_matrix[y + i][x + size];
-                    }
-
-                    if (i == size) //Коррекция пересечения нижней и верхней граней
-                        if (y + i < field_matrix.Count() - 1)
-                            if (field_matrix[y + i + 1][x + j] == 1)
-                                field_matrix[y + i][x + j] = 1;
                 }
-
             }
 
-            field_matrix[y + size][x] = 1; //Корркция левого нижнего угла
-
-            if (x + size < field_matrix[0].Count() - 1) //Корркция правого верхнего угла
-                if (field_matrix[y][x + size + 1] == 2 & field_matrix[y][x + size - 1] != 1)
-                field_matrix[y][x + size] = 2;
-
-            else field_matrix[y][x + size] = 1;
-
-            field_matrix[y + size][x + size] = 1; //Корркция правого нижнего угла
+            if (size == 1) field_matrix[y][x] = 2;
 
             int[] res = new int[3] { x, y, size };
 
@@ -270,7 +223,7 @@ namespace Kursach_again
                 for (int y = 0; y < height; y++)
                 {
                     if (field_matrix[y].Sum() == 1) break;
-                    if (field_matrix[y].Min() == 2) continue;
+                    if (field_matrix[y].Sum() == 2 * width) continue;
 
                     for (int x = 0; x < width; x++)
                     {
@@ -279,9 +232,9 @@ namespace Kursach_again
                         if (field_matrix[y][x] == 1) //Левый верхний угол квадрата может быть расположен только в единицу
                         {
                             if (x + button.Width > width - 1) break; //Переход на след. строку, если ширина недостаточна
-                            if (y + button.Height >= field_matrix.Count() - 1) 
+                            if (y + button.Height >= field_matrix.Count() - 1)
                                 height = add_height(button.Height, width);
-                                
+
 
                             int t_sum = 0;
                             for (int i = 1; i <= button.Height; i++) t_sum += field_matrix[y + i][x];
@@ -289,17 +242,17 @@ namespace Kursach_again
 
                             if (check_crosses(x, y, button.Width)) continue; //Вариант пропускаетя при пересечении с другими квадратами                      
 
-                            
 
-                            int[] res = new int[4] { find_touching_sum(x, y, button.Width), x, y, button.Width };
+
+                            int[] res = new int[3] { find_touching_sum(x, y, button.Width), x, y };
 
                             variants.Add(res); //Вариант расположения имеет: сумму касания, координаты, размер кнопки
 
                         }
                     }
-                }             
+                }
 
-                find_and_build_optimal_square(); //Располагаем квадрат на матрице
+                find_and_build_optimal_square(button.Width); //Располагаем квадрат на матрице
 
                 //if (cnt == 21) //Для дебага :)
                 //    yes = true;
@@ -371,7 +324,7 @@ namespace Kursach_again
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
-            make_buttons(squares_count, width + 1, make_random.Checked);
+            make_buttons(squares_count, width + 1);
 
             place_buttons(width + 1, height);
 
@@ -430,7 +383,6 @@ namespace Kursach_again
                 button2.Text = "Отключить";
                 field_width.Enabled = false;
                 number_of_squares.Enabled = false;
-                make_random.Enabled = false;
                 button1.Enabled = false;
                 button3.Enabled = true;
                 test_number.Enabled = true;
@@ -443,10 +395,9 @@ namespace Kursach_again
                 button2.Text = "Активировать";
                 field_width.Enabled = true;
                 number_of_squares.Enabled = true;
-                make_random.Enabled = true;
                 button1.Enabled = true;
                 button3.Enabled = false;
-                test_number.Enabled= false;
+                test_number.Enabled = false;
 
             }
         }
@@ -467,12 +418,22 @@ namespace Kursach_again
             field.AutoSize = true;
             field.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
-            make_buttons(squares_count, width + 1, make_random.Checked);
+            make_buttons(squares_count, width + 1);
 
             place_buttons(width + 1, height);
 
             show_matrix.Enabled = true;
             field.Show();
+        }
+        //лишнее
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (Control.ModifierKeys == Keys.Control) test_group.Visible = !test_group.Visible;
         }
     }
 }
