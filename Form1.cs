@@ -32,7 +32,7 @@ namespace Kursach_again
             tests.Add([2, 3, 5, 2, 2, 5, 4, 2, 1, 1, 1, 1, 1, 3, 3, 5, 4, 4, 2, 2, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2, 12]);
             tests.Add([5, 4, 2, 1, 3, 2, 2, 6, 5, 1, 2, 2, 1, 1, 2, 1, 1, 2, 3, 3, 2, 1, 1, 13]);
             tests.Add([1, 2, 4, 3, 2, 1, 1, 1, 1, 1, 5, 2, 2, 5, 1, 1, 1, 2, 2, 2, 7]);
-            tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 2, 2, 3, 2, 2, 1, 1, 3, 1, 3, 2, 3, 50]);
+            tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 2, 2, 3, 2, 2, 1, 1, 1, 2, 50]);
             tests.Add([1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 2, 2, 3, 4, 1, 2, 3, 4, 2, 1, 3, 50]);
             //----------------------------------------------------------------
 
@@ -105,7 +105,7 @@ namespace Kursach_again
         }
 
         //--------Найти площадь соприкаснавения с другими квадратами----------
-        private int find_touching_sum(int x, int y, int size)
+        private int touching_sum(int x, int y, int size)
         {
             int touch_sum = 0;
             int prev = 1;
@@ -113,8 +113,17 @@ namespace Kursach_again
             for (int i = 1; i <= size; i++)
             {
                 //Позволяет правильно вычислять касание правой стороны, в случае если есть пролёты 
-                if (prev == 1) if (field_matrix[y + i][x] == 1) touch_sum++;
+                if (prev == 1) 
+                    if (field_matrix[y + i][x] == 1)
+                    {
+                        touch_sum++;
+                        if (x > 0) if (field_matrix[y + i][x - 1] == 1 && field_matrix[y + i - 1][x - 1] == 1) touch_sum--;
+                    }
                 prev = field_matrix[y + i][x];
+
+                //if (y + i > 0 && x > 0)
+                //    if ((field_matrix[y + i][x - 1] == 2) && field_matrix[y + i][x] == 1) touch_sum++;
+                //else if (field_matrix[y + i][x] == 1) touch_sum++;
 
                 //Для корректного вычисления касания верхней стороны
                 if (y > 0 && x + i > 0)
@@ -223,7 +232,6 @@ namespace Kursach_again
                 for (int y = 0; y < height; y++)
                 {
                     if (field_matrix[y].Sum() == 1) break;
-                    if (field_matrix[y].Sum() == 2 * width) continue;
 
                     for (int x = 0; x < width; x++)
                     {
@@ -244,7 +252,7 @@ namespace Kursach_again
 
 
 
-                            int[] res = new int[3] { find_touching_sum(x, y, button.Width), x, y };
+                            int[] res = new int[3] { touching_sum(x, y, button.Width), x, y };
 
                             variants.Add(res); //Вариант расположения имеет: сумму касания, координаты, размер кнопки
 
